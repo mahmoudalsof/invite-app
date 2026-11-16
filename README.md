@@ -9,3 +9,15 @@ Digital invitations and door check-in for Saudi weddings and engagements (workin
 - `android/` Kotlin app (later)
 
 See `CLAUDE.md` for the approved stack, product rules, build order and current status.
+
+## Local development
+
+Needs Docker and Go (any Go 1.21+ downloads the pinned Go 1.27 toolchain on first use).
+
+```bash
+make db-up      # Postgres 18 in Docker Compose
+make migrate    # apply migrations
+make run        # server on :8080, try GET /healthz
+```
+
+`make help` lists every target.

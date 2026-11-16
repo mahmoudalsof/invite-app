@@ -114,18 +114,21 @@ Done
 - Monorepo folders.
 - `server/db/migrations/00001_init.sql`: all core tables (accounts, otp_codes, events, sections, event_roles, guests,
   invitations, message_templates, messages, check_ins, walk_in_requests, payments, sessions), the package-limit
-  trigger and the one-admit index. Tested up/down on PostgreSQL 16; re-test on 18.
+  trigger and the one-admit index. Tested up/down/up on PostgreSQL 18.7 (`make migrate-check`); the package limit
+  held under 100 concurrent inserts and a second admitted scan is rejected.
+- `docker-compose.yml` (Postgres 18), `server/go.mod` (Go 1.27, toolchain go1.27.4), a stdlib-only
+  `server/cmd/server` that serves `GET /healthz`, and a Makefile (`make help` lists targets). Tools (goose, sqlc)
+  run at pinned versions with `go run`, so nothing is installed globally.
 
 Next
-1. `docker-compose.yml` (Postgres 18), `server/go.mod`, Makefile targets (migrate, sqlc, generate, test, run).
-2. `server/sqlc.yaml` + queries for the first endpoints.
-3. `api/openapi.yaml` + oapi-codegen config: auth (dev sign-in), events, sections, guests (package limit → 409 with
+1. `server/sqlc.yaml` + queries for the first endpoints.
+2. `api/openapi.yaml` + oapi-codegen config: auth (dev sign-in), events, sections, guests (package limit → 409 with
    upgrade hint), invitations/send, door list download, check-in sync, walk-in requests.
-4. Go service: config, slog, session middleware, role checks (incl. women's-name privacy), Ed25519 pass signing,
+3. Go service: config, slog, session middleware, role checks (incl. women's-name privacy), Ed25519 pass signing,
    River setup with a send-invitation job, fake WhatsApp + fake payments.
-5. Guest pages: invitation, RSVP (htmx), QR pass, in ar/en with self-hosted fonts.
-6. Tests for every product rule above.
-7. `design/tokens.json` → Swift, Kotlin, CSS; `ios/project.yml` starter (theme, fonts, API client, RTL, placeholder screens).
+4. Guest pages: invitation, RSVP (htmx), QR pass, in ar/en with self-hosted fonts.
+5. Tests for every product rule above.
+6. `design/tokens.json` → Swift, Kotlin, CSS; `ios/project.yml` starter (theme, fonts, API client, RTL, placeholder screens).
 
 ## Reference documents (owner's claude.ai artifacts)
 
