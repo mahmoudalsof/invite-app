@@ -119,16 +119,27 @@ Done
 - `docker-compose.yml` (Postgres 18), `server/go.mod` (Go 1.27, toolchain go1.27.4), a stdlib-only
   `server/cmd/server` that serves `GET /healthz`, and a Makefile (`make help` lists targets). Tools (goose, sqlc)
   run at pinned versions with `go run`, so nothing is installed globally.
+- `server/sqlc.yaml` + `server/db/queries/*.sql` → generated `server/internal/db` (pgx/v5, google/uuid, pointers for
+  NULLs). Queries cover accounts, sessions, events, sections, roles, guests, invitations/RSVP, door pass list,
+  check-in sync, walk-ins, messages and payments. Rules kept in SQL: package size can't drop below the guest count,
+  RSVP children ≤ invited children, check-in insert is idempotent and first admit wins (a lost race returns no row),
+  message status only moves forward, walk-ins and payments are decided once.
+  `server/internal/db/queries_test.go` tests these against Postgres (`make test` migrates first).
+
+Notes for the Go service
+- Inviter quotas are not enforced by the database: in one transaction, `GetEventForUpdate`, then
+  `CountGuestsInvitedBy`, then `CreateGuest`.
+- Door team members are "picked from the guest list", but `event_roles` has no link to `guests` yet. Add a
+  nullable `guest_id` in a new migration if the app needs to show which guest a door role belongs to.
 
 Next
-1. `server/sqlc.yaml` + queries for the first endpoints.
-2. `api/openapi.yaml` + oapi-codegen config: auth (dev sign-in), events, sections, guests (package limit → 409 with
+1. `api/openapi.yaml` + oapi-codegen config: auth (dev sign-in), events, sections, guests (package limit → 409 with
    upgrade hint), invitations/send, door list download, check-in sync, walk-in requests.
-3. Go service: config, slog, session middleware, role checks (incl. women's-name privacy), Ed25519 pass signing,
+2. Go service: config, slog, session middleware, role checks (incl. women's-name privacy), Ed25519 pass signing,
    River setup with a send-invitation job, fake WhatsApp + fake payments.
-4. Guest pages: invitation, RSVP (htmx), QR pass, in ar/en with self-hosted fonts.
-5. Tests for every product rule above.
-6. `design/tokens.json` → Swift, Kotlin, CSS; `ios/project.yml` starter (theme, fonts, API client, RTL, placeholder screens).
+3. Guest pages: invitation, RSVP (htmx), QR pass, in ar/en with self-hosted fonts.
+4. Tests for every product rule above.
+5. `design/tokens.json` → Swift, Kotlin, CSS; `ios/project.yml` starter (theme, fonts, API client, RTL, placeholder screens).
 
 ## Reference documents (owner's claude.ai artifacts)
 

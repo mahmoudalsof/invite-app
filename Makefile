@@ -51,7 +51,7 @@ sqlc: ## Generate Go query code from db/queries (needs server/sqlc.yaml)
 generate: sqlc ## Run all code generation (sqlc, then go generate for oapi-codegen)
 	cd server && go generate ./...
 
-test: ## Run Go tests (needs `make db-up`)
+test: migrate ## Apply migrations, then run Go tests (needs `make db-up`)
 	cd server && go test ./...
 
 run: ## Run the server on the host
